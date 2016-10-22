@@ -31,8 +31,8 @@ class Character:
                            self.shape_attributes.fill_color
                            )
                            
-                           
-                           
+    def move(self, key):
+          print key
                            
                            
         
@@ -41,7 +41,7 @@ class Character:
     
 
 cliq = Character()
-print type(cliq)
+#print type(cliq)
 
 # Handler to draw on canvas
 def draw(canvas):
@@ -50,7 +50,10 @@ def draw(canvas):
 # Create a frame and assign callbacks to event handlers
 frame = simplegui.create_frame("Home", 500, 500)
 
-frame.set_draw_handler(draw)
+
 
 # Start the frame animation
+frame.set_draw_handler(draw)
+frame.set_keydown_handler(cliq.move)
 frame.start()
+
