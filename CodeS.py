@@ -1,7 +1,7 @@
 
 import simplegui
 
-frame = simplegui.create_frame("Home", 500, 500)
+frame = simplegui.create_frame("Error 404: screen not found.", 500, 500)
 
 class ShapeAttributes:
     
@@ -48,7 +48,20 @@ class Character:
         self.circle_shape.center_point = (
         self.circle_shape.center_point[0] + Character.vel[0],    
         self.circle_shape.center_point[1] + Character.vel[1]
-        )    
+        )
+        #LeftSideCollision
+        if self.circle_shape.center_point[0] <= self.circle_shape.radius :
+            self.shape_attributes.fill_color = "yellow"
+            self.circle_shape.radius = 65
+        if self.circle_shape.center_point[1] <= self.circle_shape.radius :
+            self.shape_attributes.fill_color = "Blue"
+            self.circle_shape.radius = 45
+        if self.circle_shape.center_point[0] >= self.circle_shape.radius +400 :
+            self.shape_attributes.fill_color = "red"
+            self.circle_shape.radius = 65
+        if self.circle_shape.center_point[1] >= 500-self.circle_shape.radius  :
+            self.shape_attributes.fill_color = "Green"
+            self.circle_shape.radius = 45
         canvas.draw_circle(
             self.circle_shape.center_point,
             self.circle_shape.radius,
@@ -100,4 +113,4 @@ def draw(canvas):
 
 frame.set_draw_handler(draw)
 frame.set_keydown_handler(cliq.move)
-frame.start()
+frame.start())
