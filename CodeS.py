@@ -22,7 +22,19 @@ def rect_coords (length, height, startpos = (0, 0)) :
         (x + length, y + height),
         (x + length, y)  
     ]
-
+class Square:
+    def __init__(self, x, y, size=GLOBAL_DEFAULT_SQUARE_SIZE):
+        self.x = x
+        self.y = y
+        self.size = size
+        
+    def draw_me(self, canvas):
+        size = self.size
+        (x,y) = self.x*size, self.y*size
+        canvas.draw_polygon(rect_coords(size, size, (x,y)),
+                    1, 'Green', 'Orange'
+        )
+        
 class SquareGrid:
     
     SQUARE_PIXEL_SIZE = GLOBAL_DEFAULT_SQUARE_SIZE
@@ -84,7 +96,6 @@ class Circle:
             self.center_point[0] + shift_x,
             self.center_point[1]
         )
-
     def update_y (self, shift_y):
         self.center_point = (
             self.center_point[0],
@@ -93,6 +104,8 @@ class Circle:
     '''
 
 class Body:
+    def __init__(self):
+        self.body_segments = [Square(0,0), Square(2,2), Square(1,1)]
 
     def __init__(self):
         self.body_segments = []
@@ -102,7 +115,20 @@ class Body:
 
     def list_segments(self):
         return list(self.body_segments)
-
+    
+    def draw_me(self, canvas):
+        for sqr in self.body_segments:
+            sqr.draw_me(canvas)
+    
+    def update_direction(self, shift_point):
+        sqr_shift_point = map(lambda pt: pt*IN_SQUARES, shift_point)
+        pt = self.circle_shape.center_point
+        self.body.append(Square(pt[0]/IN_SQUARES, pt[1]/IN_SQUARES))	
+        new_point = (
+            pt[0] + sqr_shift_point[0], 
+            pt[1] + sqr_shift_point[1], 
+        )
+        self.circle_shape.center_point = new_point
 class Character:
     
     key_map = {
