@@ -13,6 +13,19 @@ GLOBAL_SQUARES_ACROSS = WINDOW_WIDTH / GLOBAL_DEFAULT_SQUARE_SIZE
 BASE_SHIFT_X = (GLOBAL_SQUARES_ACROSS - GLOBAL_NUM_ROWS) /2
 BASE_SHIFT_Y = BASE_SHIFT_X
 
+DEFAULT_SQUARE_DRAW_ATTRIBUTES = {
+    "line_width": 1,
+    "line_color": 'black',
+    "fill_color": 'white'
+}
+
+# For color: http://www.codeskulptor.org/docs.html#Colors
+DEFUALT_SNAKE_DRAW_ATTRIBUTES = {
+    "line_width": 2,
+    "line_color": "white",
+    "fill_color": "black"
+}
+
 def rect_coords (length, height, startpos = (0, 0)) :
     x = startpos[0]
     y = startpos[1]
@@ -22,19 +35,24 @@ def rect_coords (length, height, startpos = (0, 0)) :
         (x + length, y + height),
         (x + length, y)  
     ]
+
 class Square:
-    def __init__(self, x, y, size=GLOBAL_DEFAULT_SQUARE_SIZE):
-        self.x = x
-        self.y = y
+    SHAPE_ATTRIBUTES = DEFAULT_SQUARE_DRAW_ATTRIBUTES
+    SIZE = GLOBAL_DEFAULT_SQUARE_SIZE
+    
+    def __init__(self, top_left_pt, size=SIZE, shape_attributes=SHAPE_ATTRIBUTES):
+        self.top_left_point = top_left_pt
+        self.shape_attributes = shape_attributes
         self.size = size
         
     def draw_me(self, canvas):
         size = self.size
-        (x,y) = self.x*size, self.y*size
+        (x,y) = self.top_left_point
+        (x,y) = x*size, y*size
         canvas.draw_polygon(rect_coords(size, size, (x,y)),
-                    1, 'Green', 'Orange'
+                    self.shape_attributes["line_width"], self.shape_attributes["line_color"], self.shape_attributes["fill_color"]
         )
-        
+                            
 class SquareGrid:
     
     SQUARE_PIXEL_SIZE = GLOBAL_DEFAULT_SQUARE_SIZE
@@ -42,94 +60,60 @@ class SquareGrid:
     NUM_COLS = GLOBAL_NUM_COLS
     
     def __init__(self):
-        self.grid_elements = self.init_grid(
-            WINDOW_WIDTH,
-            WINDOW_HEIGHT
-        )
+        self.grid_elements = self.init_grid()
 
-    def init_grid(self, width, height):
+    def init_grid(self):
         num_rows = self.NUM_ROWS
         num_cols = self.NUM_COLS
         grid_elements = []
-        
+        size = self.SQUARE_PIXEL_SIZE
         for x in range(num_rows):
             for y in range(num_cols):
-                grid_elements.append((x+BASE_SHIFT_X,y+BASE_SHIFT_Y))
+                top_left_pt = [
+                    (x+BASE_SHIFT_X), (y+BASE_SHIFT_Y)
+                ]
+                grid_elements.append(Square(top_left_pt))
         return grid_elements
 
     def draw_me(self, canvas):
-        size = self.SQUARE_PIXEL_SIZE
         for pos in self.grid_elements:
-            x = pos[0] * size
-            y = pos[1] * size
-            canvas.draw_polygon(
-                rect_coords(size, size, (x,y)),
-                1, 'black', 'white'
-            )
+            pos.draw_me(canvas)
 
-class ShapeAttributes:
-    def __init__ (self):
-        self.line_width = 2
-        self.line_color = "black"
-        self.fill_color = "black"
-
-        # For color: http://www.codeskulptor.org/docs.html#Colors
-
-
-class Circle:
-    
-    START_POINT_X = IN_SQUARES*(BASE_SHIFT_X + .5)
-    START_POINT_Y = IN_SQUARES*(BASE_SHIFT_Y + .5)
-    RADIUS = GLOBAL_CIRCLE_RADIUS
-    
-    def __init__ (self):
-        start_in_middle_of_base = (GLOBAL_NUM_COLS / 2) - 1
-        x = self.START_POINT_X + start_in_middle_of_base*IN_SQUARES
-        y = self.START_POINT_Y
-        
-        self.radius = self.RADIUS
-        self.center_point = (x,y)
-
-    '''
-    def update_x (self, shift_x):
-        self.center_point = (
-            self.center_point[0] + shift_x,
-            self.center_point[1]
-        )
-    def update_y (self, shift_y):
-        self.center_point = (
-            self.center_point[0],
-            self.center_point[1] + shift_y
-        )
-    '''
-
-class Body:
-    def __init__(self):
-        self.body_segments = [Square(0,0), Square(2,2), Square(1,1)]
-
-    def __init__(self):
-        self.body_segments = []
-
-    def append(self, segment):
-        self.body_segments.append(segment)
-
-    def list_segments(self):
-        return list(self.body_segments)
-    
-    def draw_me(self, canvas):
-        for sqr in self.body_segments:
-            sqr.draw_me(canvas)
-    
-    def update_direction(self, shift_point):
-        sqr_shift_point = map(lambda pt: pt*IN_SQUARES, shift_point)
-        pt = self.circle_shape.center_point
-        self.body.append(Square(pt[0]/IN_SQUARES, pt[1]/IN_SQUARES))	
-        new_point = (
-            pt[0] + sqr_shift_point[0], 
-            pt[1] + sqr_shift_point[1], 
-        )
-        self.circle_shape.center_point = new_point
 class Character:
+    
+    class Circle:
+        RADIUS = GLOBAL_CIRCLE_RADIUS
+        SHAPE_ATTRIBUTES = DEFUALT_SNAKE_DRAW_ATTRIBUTES
+
+        def __init__(self, x, y, radius=RADIUS, shape_attributes=SHAPE_ATTRIBUTES):
+            self.radius = radius
+            self.center_point = (x,y)
+            self.shape_attributes = shape_attributes
+            
+        def draw_me(self, canvas):
+            canvas.draw_circle(
+                    self.center_point,
+                    self.radius,
+                    self.shape_attributes["line_width"],
+                    self.shape_attributes["fill_color"],
+                    self.shape_attributes["fill_color"]   
+                )
+            
+    class Body:
+
+        def __init__(self, shape_attributes):
+            self.body_segments = [Square([3,3])]
+            self.shape_attributes = shape_attributes
+
+        def append(self, segment):
+            self.body_segments.append(segment)
+
+        def list_segments(self):
+            return list(self.body_segments)
+        
+        def draw_me(self, canvas):
+            for sqr in self.body_segments:
+                sqr.draw_me(canvas)
     
     key_map = {
         "left": 37,
@@ -141,150 +125,69 @@ class Character:
     move_dist = 5
     vel = [move_dist, 0]
 
-    def __init__ (self):
-        self.circle_shape = Circle()
-        self.shape_attributes = ShapeAttributes()
-        self.body = Body()
+    def __init__ (self, shape_attributes):
+        self.shape_attributes = shape_attributes      
+        self.circle_shape = self.initialize_head(shape_attributes)
+        self.body = self.Body(shape_attributes)
 
-    def bumps_into_left_wall(self):
-        return self.circle_shape.center_point[0] <= self.circle_shape.radius
-
-    def morph_into_red_dot(self):
-        self.shape_attributes.fill_color = "Red"
-        self.circle_shape.radius = 50
-
-    def morph_into_black_dot(self):
-        self.shape_attributes.fill_color = "Black"
-        self.circle_shape.radius = 9
-
-    def morph_into_pink_dot(self):
-        self.shape_attributes.fill_color = "Pink"
-        self.circle_shape.radius = 30
-
-    def morph_into_purple_dot(self):
-        self.shape_attributes.fill_color = "Purple"
-        self.circle_shape.radius = 60
-
-    def bumps_into_right_wall(self):
-        return self.circle_shape.center_point[0] >= WINDOW_WIDTH-self.circle_shape.radius
-
-    def bumps_into_ceiling(self):
-        return self.circle_shape.center_point[1] <= self.circle_shape.radius
-
-    def bumps_into_floor(self):
-        return self.circle_shape.center_point[1] >= WINDOW_HEIGHT-self.circle_shape.radius 
-
-    def save_me(self):
-        segment = self.circle_shape.center_point
-        self.body.append(segment)
-
-    def draw_me(self, canvas):
-        self.draw_circle(canvas, self.circle_shape.center_point)
-    
-    def draw_circle(self, canvas, center):
-        canvas.draw_circle(
-                center,
-                self.circle_shape.radius,
-                self.shape_attributes.line_width,
-                self.shape_attributes.fill_color,
-                self.shape_attributes.fill_color    
-            )
-    def move_right(self):
-        print "Right!"
-        curr_center = self.circle_shape.center_point
-        next_center = (curr_center[0] + IN_SQUARES, curr_center[1])
-        self.circle_shape.center_point = next_center
+    def initialize_head(self, shape_attributes):
+        START_POINT_X = IN_SQUARES*(BASE_SHIFT_X + .5)
+        START_POINT_Y = IN_SQUARES*(BASE_SHIFT_Y + .5)
         
+        start_in_middle_of_base = (GLOBAL_NUM_COLS / 2) - 1
+        x = START_POINT_X + start_in_middle_of_base*IN_SQUARES
+        y = START_POINT_Y
+        
+        return self.Circle(x,y)
+        
+    def draw_me(self, canvas):
+        self.circle_shape.draw_me(canvas)
+        self.body.draw_me(canvas)
+   
+    def update_direction(self, shift_point):
+        sqr_shift_point = map(lambda pt: pt*IN_SQUARES, shift_point)
+        pt = self.circle_shape.center_point
+        new_point = (
+            pt[0] + sqr_shift_point[0], 
+            pt[1] + sqr_shift_point[1], 
+        )
+        self.circle_shape.center_point = new_point
+        
+    def move_right(self):
+        self.update_direction((1,0))
 
     def move_left(self):
-        print "left!"
-        curr_center = self.circle_shape.center_point
-        next_center = (curr_center[0] - IN_SQUARES, curr_center[1])
-        self.circle_shape.center_point = next_center
+        self.update_direction((-1,0))
 
     def move_up(self):
-        print "up!"
-        curr_center = self.circle_shape.center_point
-        next_center = (curr_center[0], curr_center[1]-IN_SQUARES)
-        self.circle_shape.center_point = next_center
-        
-
+        self.update_direction((0,-1))
+    
     def move_down(self):
-        print "underground!"
-        curr_center = self.circle_shape.center_point
-        next_center = (curr_center[0], curr_center[1]+IN_SQUARES)
-        self.circle_shape.center_point = next_center
-    def draw_me_2 (self, canvas):
-                
-        #=================add=======================
-        #self.circle_shape.center_point[0] += Character.vel[0]
-        # can't change value above. but can point to different reference
-        self.circle_shape.center_point = (
-            self.circle_shape.center_point[0] +  Character.vel[0],
-            self.circle_shape.center_point[1] + Character.vel[1]
-        )
-
-        if self.bumps_into_left_wall():
-            self.morph_into_red_dot()
-
-        if self.bumps_into_right_wall():
-            self.morph_into_black_dot()
-
-        if self.bumps_into_ceiling():
-            self.morph_into_pink_dot()
-
-        if self.bumps_into_floor():
-            self.morph_into_purple_dot()
-
-        #self.circle_shape.center_point[1] += vel[1]
-
-        self.draw_circle(canvas, self.circle_shape.center_point)
-
-        for segment in self.body.list_segments():
-            self.draw_circle(canvas, segment)
-    # get input key press and move the circle
+        self.update_direction((0,1))
+    
     def move (self, key):
-
-        #check if key is in key_map array. 
-        #Character: this class name
         if key in Character.key_map.values():
             if key == Character.key_map["right"]:
                 self.move_right()
-
-                #self.circle_shape.update_x(Character.move_dist)
-                #Character.vel = [Character.move_dist, 0]
-
-            if key == Character.key_map["left"]:
                 
+            if key == Character.key_map["left"]:
                 self.move_left()
-
-                #self.circle_shape.update_x(-Character.move_dist)    
-                #Character.vel = [-Character.move_dist, 0]
-
+                
             if key == Character.key_map["up"]:
                 self.move_up()
-
-                #self.circle_shape.update_y(-Character.move_dist)
-                #Character.vel = [0, -Character.move_dist]
+                
             if key == Character.key_map["down"]:
                 self.move_down()
-
-                #self.circle_shape.update_y(Character.move_dist)
-                #Character.vel = [0, Character.move_dist]
-
-snake = Character()            
+                
+snake = Character(DEFUALT_SNAKE_DRAW_ATTRIBUTES)            
 grid = SquareGrid()                
 
 
 ticker = 0
 def draw(canvas):
-
-        #canvas.draw_polygon(point_list, 
-        #line_width, line_color, fill_color = color)    
+  
     box1 = rect_coords(WINDOW_WIDTH, WINDOW_HEIGHT, startpos = (0, 0))
-    #box2 = rect_coords(480, 480, startpos = (20, 20))
     canvas.draw_polygon(box1, 20, "black") #draw rectangle
-    #canvas.draw_polygon(box2, 20, "Pink")
 
 #    print time.time().
     global ticker 
