@@ -15,15 +15,15 @@ BASE_SHIFT_Y = BASE_SHIFT_X
 
 DEFAULT_SQUARE_DRAW_ATTRIBUTES = {
     "line_width": 1,
-    "line_color": 'black',
-    "fill_color": 'white'
+    "line_color": 'orange',
+    "fill_color": 'black'
 }
 
 # For color: http://www.codeskulptor.org/docs.html#Colors
 DEFUALT_SNAKE_DRAW_ATTRIBUTES = {
     "line_width": 2,
     "line_color": "white",
-    "fill_color": "black"
+    "fill_color": "orange"
 }
 
 def rect_coords (length, height, startpos = (0, 0)) :
@@ -145,8 +145,11 @@ class Character:
         self.body.draw_me(canvas)
    
     def update_direction(self, shift_point):
-        sqr_shift_point = map(lambda pt: pt*IN_SQUARES, shift_point)
+        sqr_shift_point = [shift_point[0]*IN_SQUARES, shift_point[1] * IN_SQUARES]
         pt = self.circle_shape.center_point
+        sqr_pt = pt[0] -GLOBAL_CIRCLE_RADIUS, pt[1] -GLOBAL_CIRCLE_RADIUS
+        sqr_pt = sqr_pt[0] / IN_SQUARES, sqr_pt[1] / IN_SQUARES
+        self.body.append(Square(sqr_pt))
         new_point = (
             pt[0] + sqr_shift_point[0], 
             pt[1] + sqr_shift_point[1], 
@@ -169,6 +172,7 @@ class Character:
         if key in Character.key_map.values():
             if key == Character.key_map["right"]:
                 self.move_right()
+            
                 
             if key == Character.key_map["left"]:
                 self.move_left()
@@ -189,7 +193,7 @@ def draw(canvas):
     box1 = rect_coords(WINDOW_WIDTH, WINDOW_HEIGHT, startpos = (0, 0))
     canvas.draw_polygon(box1, 20, "black") #draw rectangle
 
-#    print time.time().
+    #print time.time().
     global ticker 
     ticker += 1
     if ticker == 3:
@@ -205,7 +209,7 @@ def draw(canvas):
 # add functions and handler to frame
 #===================================================
 frame = simplegui.create_frame("Home", WINDOW_WIDTH, WINDOW_HEIGHT)
-frame.set_canvas_background("Silver")
+frame.set_canvas_background("gray")
 
 frame.set_draw_handler(draw)
 frame.set_keydown_handler(snake.move) #for move circle******
